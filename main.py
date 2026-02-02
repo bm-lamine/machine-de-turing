@@ -1,3 +1,6 @@
+import os
+
+
 class TuringMachine:
     def __init__(
         self,
@@ -198,11 +201,99 @@ def create_machine_from_input():
     )
 
 
-# Pour tester avec une machine personnalisée, décommentez les lignes suivantes:
+def load_machine_from_file(file_path):
+    transitions = {}
+    states = []
+    tape_symbols = []
+    blank = "_"
+    initial_state = ""
+    final_states = []
+    reading_transitions = False
+
+    with open(file_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue  # ignore empty lines or comments
+
+            if line.startswith("states:"):
+                states = [s.strip() for s in line.split(":")[1].split(",")]
+            elif line.startswith("tape symbols:"):
+                tape_symbols = [s.strip() for s in line.split(":")[1].split(",")]
+            elif line.startswith("blank symbol:"):
+                blank = line.split(":")[1].strip()
+            elif line.startswith("initial state:"):
+                initial_state = line.split(":")[1].strip()
+            elif line.startswith("final state:") or line.startswith("final states:"):
+                final_states = [s.strip() for s in line.split(":")[1].split(",")]
+            elif line.startswith("transition rules:"):
+                reading_transitions = True
+            elif reading_transitions:
+                if line.startswith("]"):
+                    reading_transitions = False
+                    continue
+                if "→" in line:
+                    left, right = line.split("→")
+                    state, symbol = left.split(",")
+                    new_state, write_symbol, direction = right.split(",")
+                    transitions[(state.strip(), symbol.strip())] = (
+                        new_state.strip(),
+                        write_symbol.strip(),
+                        direction.strip().upper(),
+                    )
+
+    return TuringMachine(
+        states, tape_symbols, blank, initial_state, final_states, transitions
+    )
+
+
 def main():
-    custom_tm = create_machine_from_input()
-    input_str = input("Entrez la chaîne d'entrée: ")
-    custom_tm.run(input_str, verbose=True)
+    """
+    Affiche un menu pour créer ou charger une machine de Turing.
+    """
+    while True:
+        print("\n=== Turing Machine CLI ===")
+        print("1. Créer une machine personnalisée")
+        print("2. Charger une machine depuis un fichier")
+        print("3. Quitter")
+
+        choice = input("Choix: ").strip()
+
+        if choice == "1":
+            tm = create_machine_from_input()
+        elif choice == "2":
+            # Lister les fichiers dans tests
+            test_dir = "tests"
+            files = [f for f in os.listdir(test_dir) if f.endswith(".txt")]
+            if not files:
+                print("Aucun fichier de test trouvé dans le dossier 'tests'.")
+                continue
+
+            print("\nFichiers disponibles:")
+            for i, f in enumerate(files, 1):
+                print(f"{i}. {f}")
+
+            file_choice = input("Choisissez un fichier: ").strip()
+            try:
+                idx = int(file_choice) - 1
+                if idx < 0 or idx >= len(files):
+                    print("Choix invalide.")
+                    continue
+                file_path = os.path.join(test_dir, files[idx])
+                tm = load_machine_from_file(file_path)
+            except ValueError:
+                print("Choix invalide.")
+                continue
+        elif choice == "3":
+            print("Au revoir!")
+            break
+        else:
+            print("Option invalide.")
+            continue
+
+        # Demander l'entrée pour exécuter la machine
+        input_str = input("Entrez la chaîne d'entrée: ")
+        tm.run(input_str, verbose=True)
 
 
 if __name__ == "__main__":
