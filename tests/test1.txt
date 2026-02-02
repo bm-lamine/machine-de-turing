@@ -1,0 +1,16 @@
+states: q0,q1,q2
+tape symbols: 0,1,_
+blank symbol: _
+initial state: q0
+final state: q2
+transition rules: [
+    q0,0→q0,1,R
+    q0,1→q0,0,R
+    q0,_→q1,_,L
+
+    q1,0→q1,0,L
+    q1,1→q1,1,L
+    q1,_→q2,_,R
+]
+
+

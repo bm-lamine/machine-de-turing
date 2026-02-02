@@ -1,0 +1,15 @@
+states: q_even,q_odd,q_accept,q_reject
+tape symbols: 0,1,_
+blank symbol: _
+initial state: q_even
+final state: q_accept
+transition rules: [
+    q_even,0→q_odd,0,R
+    q_odd,0→q_even,0,R
+
+    q_even,1→q_even,1,R
+    q_odd,1→q_odd,1,R
+
+    q_even,_→q_accept,_,R
+    q_odd,_→q_reject,_,R
+]
